@@ -5,10 +5,12 @@ const ModalFormPage = () => {
 
   const openFormModal = async () => {
     const result = await open<string, string>(({ resolve, reject }) => (
-      <div>
-        ˆ<h1>Form</h1>
-        <button onClick={() => resolve("success")}>Submit</button>
-        <button onClick={() => reject("error")}>Cancel</button>
+      <div className="modal-container">
+        <div className="modal-content">
+          ˆ<h1>Form</h1>
+          <button onClick={() => resolve("success")}>Submit</button>
+          <button onClick={() => reject("error")}>Cancel</button>
+        </div>
       </div>
     ));
     console.log(result);
