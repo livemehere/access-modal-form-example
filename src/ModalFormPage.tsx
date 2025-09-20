@@ -4,20 +4,25 @@ const ModalFormPage = () => {
   const { open } = useModal();
 
   const openFormModal = async () => {
-    const result = await open<string, string>(({ resolve, reject }) => (
-      <div
-        className="modal-content"
-        style={{
-          overflow: "auto",
-          height: "50vh",
-        }}
-      >
-        <h1>Form</h1>
-        <button onClick={() => resolve("success")}>Submit</button>
-        <button onClick={() => reject("error")}>Cancel</button>
-        <div style={{ height: "100vh" }}></div>
-      </div>
-    ));
+    const result = await open<string, string>(
+      ({ resolve, reject, formTitleId, formDescriptionId }) => (
+        <div
+          className="modal-content"
+          style={{
+            overflow: "auto",
+            height: "50vh",
+          }}
+        >
+          <h1 id={formTitleId}>Form</h1>
+          <p id={formDescriptionId}>
+            Please fill out the form below to submit.
+          </p>
+          <button onClick={() => resolve("success")}>Submit</button>
+          <button onClick={() => reject("error")}>Cancel</button>
+          <div style={{ height: "100vh" }}></div>
+        </div>
+      )
+    );
     console.log(result);
   };
 

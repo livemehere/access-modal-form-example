@@ -12,11 +12,16 @@ import {
 import { createPortal } from "react-dom";
 import { createRandomId } from "./utils";
 
+const getFormTitleId = (modalId: string) => `form-title-${modalId}`;
+const getFormDescriptionId = (modalId: string) => `form-description-${modalId}`;
+
 interface IModalContext {
   open: <Resolve = unknown, Reject = unknown>(
     fnComp: (options: {
       resolve: (value: Resolve) => void;
       reject: (value: Reject) => void;
+      formTitleId: string;
+      formDescriptionId: string;
     }) => React.ReactNode
   ) => Promise<Resolve>;
   close: (id?: string) => void;
@@ -58,9 +63,9 @@ function ModalWrapper({
       <div
         ref={ref}
         role="dialog"
-        aria-modal="false"
-        aria-labelledby={`modal-title-${id}`}
-        aria-describedby={`modal-description-${id}`}
+        aria-modal="true"
+        aria-labelledby={getFormTitleId(id)}
+        aria-describedby={getFormDescriptionId(id)}
         onKeyDown={(e) => {
           if (e.key === "Escape") {
             e.preventDefault();
@@ -96,7 +101,12 @@ export function ModalProvider({ children }: { children: React.ReactNode }) {
         setModals((prev) => prev.filter(({ id }) => id !== modalId));
       };
 
-      const ModalCmp = fnComp({ resolve, reject });
+      const ModalCmp = fnComp({
+        resolve,
+        reject,
+        formTitleId: getFormTitleId(modalId),
+        formDescriptionId: getFormDescriptionId(modalId),
+      });
       setModals((prev) => [...prev, { id: modalId, component: ModalCmp }]);
     });
   }, []);
