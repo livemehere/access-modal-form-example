@@ -1,3 +1,14 @@
+/* animation */
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 #modal-layer {
   position: fixed;
   top: 0;
@@ -7,6 +18,10 @@
   background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(10px);
   z-index: 1000;
+}
+
+.modal-wrapper {
+  animation: fade-in 0.3s ease;
 }
 
 .modal-content {
@@ -22,5 +37,11 @@
 * {
   &:focus {
     outline: 2px solid dodgerblue;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none;
   }
 }

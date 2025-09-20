@@ -61,6 +61,7 @@ function ModalWrapper({
   return (
     <Wrapper>
       <div
+        className="modal-wrapper"
         ref={ref}
         role="dialog"
         aria-modal="true"
