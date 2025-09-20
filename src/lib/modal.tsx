@@ -1,9 +1,12 @@
+import { FocusTrap } from "focus-trap-react";
 import {
   createContext,
   Fragment,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { createPortal } from "react-dom";
@@ -16,13 +19,52 @@ interface IModalContext {
       reject: (value: Reject) => void;
     }) => React.ReactNode
   ) => Promise<Resolve>;
-  closeAll: () => void;
+  close: (id?: string) => void;
 }
 
 const ModalContext = createContext<IModalContext>({} as IModalContext);
 
 export function useModal() {
   return useContext(ModalContext);
+}
+
+function ModalWrapper({
+  children,
+  id,
+  isLast,
+}: {
+  children: React.ReactNode;
+  id: string;
+  isLast: boolean;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const Wrapper = isLast ? FocusTrap : Fragment;
+
+  useEffect(() => {
+    if (!isLast) return;
+    const root = ref.current;
+    if (!root) return;
+
+    const headTags = root.querySelector(
+      "h1, h2, h3, h4, h5, h6"
+    ) as HTMLHeadElement;
+    headTags.tabIndex = headTags.tabIndex ? headTags.tabIndex : -1;
+    headTags?.focus();
+  }, []);
+
+  return (
+    <Wrapper>
+      <div
+        ref={ref}
+        role="dialog"
+        aria-modal="false"
+        aria-labelledby={`modal-title-${id}`}
+        aria-describedby={`modal-description-${id}`}
+      >
+        {children}
+      </div>
+    </Wrapper>
+  );
 }
 
 export function ModalProvider({ children }: { children: React.ReactNode }) {
@@ -49,24 +91,38 @@ export function ModalProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const closeAll = useCallback(
-    () => () => {
+  const close = useCallback((id?: string) => {
+    if (id) {
+      setModals((prev) => prev.filter(({ id: modalId }) => modalId !== id));
+    } else {
       setModals([]);
-    },
-    []
-  );
+    }
+  }, []);
 
-  const value = useMemo(() => ({ open, closeAll }), [open, closeAll]);
+  const value = useMemo(() => ({ open, close }), [open, close]);
 
   return (
     <ModalContext.Provider value={value}>
       {children}
       {modals.length > 0 &&
         createPortal(
-          <div id="modal-layer">
-            {modals.map(({ id, component }) => (
-              <Fragment key={id}>{component}</Fragment>
-            ))}
+          <div
+            id="modal-layer"
+            role="presentation"
+            onPointerDown={(e) => {
+              if (e.target === e.currentTarget) {
+                close();
+              }
+            }}
+          >
+            {modals.map(({ id, component }, index) => {
+              const isLast = index === modals.length - 1;
+              return (
+                <ModalWrapper key={id} isLast={isLast} id={id}>
+                  {component}
+                </ModalWrapper>
+              );
+            })}
           </div>,
           document.body
         )}
