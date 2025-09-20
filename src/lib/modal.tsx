@@ -37,6 +37,7 @@ function ModalWrapper({
   id: string;
   isLast: boolean;
 }) {
+  const { close } = useModal();
   const ref = useRef<HTMLDivElement>(null);
   const Wrapper = isLast ? FocusTrap : Fragment;
 
@@ -60,6 +61,13 @@ function ModalWrapper({
         aria-modal="false"
         aria-labelledby={`modal-title-${id}`}
         aria-describedby={`modal-description-${id}`}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            e.stopPropagation();
+            close();
+          }
+        }}
       >
         {children}
       </div>
