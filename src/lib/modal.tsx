@@ -1,18 +1,13 @@
-import { createContext, useContext, useState } from "react";
+import {
+  createContext,
+  Fragment,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
-
-/* --- 유틸 함수 --- */
-function createRandomId(prefix = "modal", length = 9) {
-  const randomArr = new Uint8Array(length);
-  crypto.getRandomValues(randomArr);
-
-  // base36처럼 영문+숫자 조합 문자열 생성
-  const randomStr = Array.from(randomArr, (n) => (n % 36).toString(36)).join(
-    ""
-  );
-
-  return `${prefix}-${Date.now()}-${randomStr}`;
-}
+import { createRandomId } from "./utils";
 
 interface IModalContext {
   open: <Resolve = unknown, Reject = unknown>(
@@ -31,44 +26,50 @@ export function useModal() {
 }
 
 export function ModalProvider({ children }: { children: React.ReactNode }) {
-  const [ModalComps, setModalComps] = useState<
+  const [modals, setModals] = useState<
     { id: string; component: React.ReactNode }[]
   >([]);
 
-  const open: IModalContext["open"] = (fnComp) => {
+  const open: IModalContext["open"] = useCallback((fnComp) => {
     return new Promise((_resolve, _reject) => {
       const modalId = createRandomId();
 
       const resolve = (value: any) => {
         _resolve(value);
-        setModalComps((prev) => prev.filter(({ id }) => id !== modalId));
+        setModals((prev) => prev.filter(({ id }) => id !== modalId));
       };
 
       const reject = (reason: any) => {
         _reject(reason);
-        setModalComps((prev) => prev.filter(({ id }) => id !== modalId));
+        setModals((prev) => prev.filter(({ id }) => id !== modalId));
       };
 
       const ModalCmp = fnComp({ resolve, reject });
-      setModalComps((prev) => [...prev, { id: modalId, component: ModalCmp }]);
+      setModals((prev) => [...prev, { id: modalId, component: ModalCmp }]);
     });
-  };
+  }, []);
 
-  const closeAll = () => {
-    setModalComps([]);
-  };
+  const closeAll = useCallback(
+    () => () => {
+      setModals([]);
+    },
+    []
+  );
+
+  const value = useMemo(() => ({ open, closeAll }), [open, closeAll]);
 
   return (
-    <ModalContext.Provider value={{ open, closeAll }}>
+    <ModalContext.Provider value={value}>
       {children}
-      {createPortal(
-        <div id="modal-layer">
-          {ModalComps.map(({ id, component }) => (
-            <div key={id}>{component}</div>
-          ))}
-        </div>,
-        document.body
-      )}
+      {modals.length > 0 &&
+        createPortal(
+          <div id="modal-layer">
+            {modals.map(({ id, component }) => (
+              <Fragment key={id}>{component}</Fragment>
+            ))}
+          </div>,
+          document.body
+        )}
     </ModalContext.Provider>
   );
 }
