@@ -80,6 +80,8 @@ export function ModalProvider({ children }: { children: React.ReactNode }) {
     { id: string; component: React.ReactNode }[]
   >([]);
 
+  const bodyOverflowSnapshot = useRef<string>(document.body.style.overflow);
+
   const open: IModalContext["open"] = useCallback((fnComp) => {
     return new Promise((_resolve, _reject) => {
       const modalId = createRandomId();
@@ -108,6 +110,25 @@ export function ModalProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(() => ({ open, close }), [open, close]);
+
+  const lockScroll = () => {
+    bodyOverflowSnapshot.current = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+  };
+  const unlockScroll = () => {
+    document.body.style.overflow = bodyOverflowSnapshot.current;
+  };
+
+  useEffect(() => {
+    if (modals.length > 0) {
+      lockScroll();
+    } else {
+      unlockScroll();
+    }
+    return () => {
+      unlockScroll();
+    };
+  }, [modals]);
 
   return (
     <ModalContext.Provider value={value}>
