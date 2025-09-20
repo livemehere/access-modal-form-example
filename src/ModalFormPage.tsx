@@ -5,12 +5,17 @@ const ModalFormPage = () => {
 
   const openFormModal = async () => {
     const result = await open<string, string>(({ resolve, reject }) => (
-      <div className="modal-container">
-        <div className="modal-content">
-          ˆ<h1>Form</h1>
-          <button onClick={() => resolve("success")}>Submit</button>
-          <button onClick={() => reject("error")}>Cancel</button>
-        </div>
+      <div
+        className="modal-content"
+        style={{
+          overflow: "auto",
+          height: "50vh",
+        }}
+      >
+        <h1>Form</h1>
+        <button onClick={() => resolve("success")}>Submit</button>
+        <button onClick={() => reject("error")}>Cancel</button>
+        <div style={{ height: "100vh" }}></div>
       </div>
     ));
     console.log(result);
@@ -18,9 +23,15 @@ const ModalFormPage = () => {
 
   /* 여기에 구현해 주세요 */
   return (
-    <div>
+    <div
+      style={{
+        height: "200vh",
+        overflow: "auto",
+      }}
+    >
       <div>ModalFormPage</div>
       <button onClick={openFormModal}>Open Modal</button>
+      <div tabIndex={0}>tab index</div>
     </div>
   );
 };
